@@ -175,7 +175,7 @@ public:
      *   be existing, however.
      */
     virtual bool ComparePaths (const char* one,
-        const char* second) const;
+        const char* second) const = 0;
 
     // -------------------------------------------------------------------
     /** @brief For backward compatibility
@@ -189,27 +189,38 @@ public:
      *  @param path Path to push onto the stack.
      *  @return True, when push was successful, false if path is empty.
      */
-    virtual bool PushDirectory( const std::string &path );
+    virtual bool PushDirectory(const char* path) = 0;
+
+    inline bool PushDirectory(const std::string& path)
+    {
+        return PushDirectory(path.c_str());
+    }
+    
 
     // -------------------------------------------------------------------
     /** @brief Returns the top directory from the stack.
      *  @return The directory on the top of the stack.
      *          Returns empty when no directory was pushed to the stack.
      */
-    virtual const std::string &CurrentDirectory() const;
+    virtual const char* CurrentDirectory() const = 0;
+
+    inline std::string GetCurrentDirectory() const
+    {
+        return std::string(CurrentDirectory());
+    }
 
     // -------------------------------------------------------------------
     /** @brief Returns the number of directories stored on the stack.
      *  @return The number of directories of the stack.
      */
-    virtual size_t StackSize() const;
+    virtual size_t StackSize() const = 0;
 
     // -------------------------------------------------------------------
     /** @brief Pops the top directory from the stack.
      *  @return True, when a directory was on the stack. False if no
      *          directory was on the stack.
      */
-    virtual bool PopDirectory();
+    virtual bool PopDirectory() = 0;
 
     // -------------------------------------------------------------------
     /** @brief CReates an new directory at the given path.
@@ -217,25 +228,36 @@ public:
      *  @return True, when a directory was created. False if the directory
      *           cannot be created.
      */
-    virtual bool CreateDirectory( const std::string &path );
+    virtual bool CreateDirectory( const char* path ) = 0;
+
+    inline bool CreateDirectory(const std::string& path)
+    {
+        return CreateDirectory(path.c_str());
+    }
 
     // -------------------------------------------------------------------
     /** @brief Will change the current directory to the given path.
      *  @param path     [in] The path to change to.
      *  @return True, when the directory has changed successfully.
      */
-    virtual bool ChangeDirectory( const std::string &path );
+    virtual bool ChangeDirectory( const char* path ) = 0;
 
-    virtual bool DeleteFile( const std::string &file );
+    inline bool ChangeDirectory(const std::string &path)
+    {
+        return ChangeDirectory(path.c_str());
+    }
 
-private:
-    std::vector<std::string> m_pathStack;
+    virtual bool DeleteFile( const char* file ) = 0;
+
+    inline bool DeleteFile(const std::string &file)
+    {
+        return DeleteFile(file.c_str());
+    }
 };
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-IOSystem::IOSystem() AI_NO_EXCEPT
-: m_pathStack() {
+IOSystem::IOSystem() AI_NO_EXCEPT {
     // empty
 }
 
@@ -257,12 +279,12 @@ IOStream* IOSystem::Open(const std::string& pFile, const std::string& pMode) {
     // NOTE:
     // For compatibility, interface was changed to const char* to
     // avoid crashes between binary incompatible STL versions
-    return Open(pFile.c_str(),pMode.c_str());
+    return Open(pFile.c_str(), pMode.c_str());
 }
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::Exists( const std::string& pFile) const {
+bool IOSystem::Exists(const std::string& pFile) const {
     // NOTE:
     // For compatibility, interface was changed to const char* to
     // avoid crashes between binary incompatible STL versions
@@ -271,17 +293,129 @@ bool IOSystem::Exists( const std::string& pFile) const {
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::ComparePaths (const std::string& one, const std::string& second) const {
+bool IOSystem::ComparePaths(const std::string& one, const std::string& second) const {
     // NOTE:
     // For compatibility, interface was changed to const char* to
     // avoid crashes between binary incompatible STL versions
-    return ComparePaths(one.c_str(),second.c_str());
+    return ComparePaths(one.c_str(), second.c_str());
+}
+
+// ---------------------------------------------------------------------------
+/** @brief CPP-API: Base interface to the file system.
+ *
+ *  Incomplete implementation of IOSystem that contains a few functions that most
+ *  of other derived IOSystem classes expect to have implemented in pretty much
+ *  the same way. It's not safe to derive from this class in your application if
+ *  you use a different C++ runtime than what was used to build Assimp.
+ *
+ *  @see Importer::SetIOHandler() 
+ */
+class ASSIMP_API BaseIOSystem : public IOSystem
+{
+public:
+    // -------------------------------------------------------------------
+    /** @brief Default constructor.
+     *
+     *  Create an instance of your derived class and assign it to an
+     *  #Assimp::Importer instance by calling Importer::SetIOHandler().
+     */
+    BaseIOSystem() AI_NO_EXCEPT;
+
+    // -------------------------------------------------------------------
+    /** @brief Virtual destructor.
+     *
+     *  It is safe to be called from within DLL Assimp, we're constructed
+     *  on Assimp's heap.
+     */
+    virtual ~BaseIOSystem();
+
+    // -------------------------------------------------------------------
+    /** @brief Compares two paths and check whether the point to
+     *         identical files.
+     *
+     * The dummy implementation of this virtual member performs a
+     * case-insensitive comparison of the given strings. The default IO
+     * system implementation uses OS mechanisms to convert relative into
+     * absolute paths, so the result can be trusted.
+     * @param one First file
+     * @param second Second file
+     * @return true if the paths point to the same file. The file needn't
+     *   be existing, however.
+     */
+    virtual bool ComparePaths(const char *one,
+            const char *second) const override;
+
+    // -------------------------------------------------------------------
+    /** @brief Pushes a new directory onto the directory stack.
+     *  @param path Path to push onto the stack.
+     *  @return True, when push was successful, false if path is empty.
+     */
+    virtual bool PushDirectory(const char *path) override;
+
+    // -------------------------------------------------------------------
+    /** @brief Returns the top directory from the stack.
+     *  @return The directory on the top of the stack.
+     *          Returns empty when no directory was pushed to the stack.
+     */
+    virtual const char *CurrentDirectory() const override;
+
+    // -------------------------------------------------------------------
+    /** @brief Returns the number of directories stored on the stack.
+     *  @return The number of directories of the stack.
+     */
+    virtual size_t StackSize() const override;
+
+    // -------------------------------------------------------------------
+    /** @brief Pops the top directory from the stack.
+     *  @return True, when a directory was on the stack. False if no
+     *          directory was on the stack.
+     */
+    virtual bool PopDirectory() override;
+
+    // -------------------------------------------------------------------
+    /** @brief CReates an new directory at the given path.
+     *  @param  path    [in] The path to create.
+     *  @return True, when a directory was created. False if the directory
+     *           cannot be created.
+     */
+    virtual bool CreateDirectory(const char* path) override;
+
+    // -------------------------------------------------------------------
+    /** @brief Will change the current directory to the given path.
+     *  @param path     [in] The path to change to.
+     *  @return True, when the directory has changed successfully.
+     */
+    virtual bool ChangeDirectory(const char* path) override;
+
+    virtual bool DeleteFile(const char* file) override;
+
+private:
+    std::vector<std::string> m_pathStack;
+};
+
+// ----------------------------------------------------------------------------
+AI_FORCE_INLINE
+BaseIOSystem::BaseIOSystem() AI_NO_EXCEPT
+: m_pathStack() {
+    // empty
 }
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::PushDirectory( const std::string &path ) {
-    if ( path.empty() ) {
+BaseIOSystem::~BaseIOSystem() {
+    // empty
+}
+
+// ----------------------------------------------------------------------------
+// For compatibility, the interface of some functions taking a std::string was
+// changed to const char* to avoid crashes between binary incompatible STL
+// versions. This code her is inlined,  so it shouldn't cause any problems.
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+AI_FORCE_INLINE
+bool BaseIOSystem::PushDirectory( const char* path ) {
+    if ( !path || path[0] == '\0' ) {
         return false;
     }
 
@@ -292,23 +426,23 @@ bool IOSystem::PushDirectory( const std::string &path ) {
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-const std::string &IOSystem::CurrentDirectory() const {
+const char* BaseIOSystem::CurrentDirectory() const {
     if ( m_pathStack.empty() ) {
         static const std::string Dummy("");
-        return Dummy;
+        return Dummy.c_str();
     }
-    return m_pathStack[ m_pathStack.size()-1 ];
+    return m_pathStack[ m_pathStack.size()-1 ].c_str();
 }
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-size_t IOSystem::StackSize() const {
+size_t BaseIOSystem::StackSize() const {
     return m_pathStack.size();
 }
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::PopDirectory() {
+bool BaseIOSystem::PopDirectory() {
     if ( m_pathStack.empty() ) {
         return false;
     }
@@ -320,40 +454,40 @@ bool IOSystem::PopDirectory() {
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::CreateDirectory( const std::string &path ) {
-    if ( path.empty() ) {
+bool BaseIOSystem::CreateDirectory( const char* path ) {
+    if (!path || path[0] == '\0') {
         return false;
     }
 
 #ifdef _WIN32
-    return 0 != ::_mkdir( path.c_str() );
+    return 0 != ::_mkdir( path );
 #else
-    return 0 != ::mkdir( path.c_str(), 0777 );
+    return 0 != ::mkdir( path, 0777 );
 #endif // _WIN32
 }
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::ChangeDirectory( const std::string &path ) {
-    if ( path.empty() ) {
+bool BaseIOSystem::ChangeDirectory( const char* path ) {
+    if (!path || path[0] == '\0') {
         return false;
     }
 
 #ifdef _WIN32
-    return 0 != ::_chdir( path.c_str() );
+    return 0 != ::_chdir( path );
 #else
-    return 0 != ::chdir( path.c_str() );
+    return 0 != ::chdir( path );
 #endif // _WIN32
 }
 
 
 // ----------------------------------------------------------------------------
 AI_FORCE_INLINE
-bool IOSystem::DeleteFile( const std::string &file ) {
-    if ( file.empty() ) {
+bool BaseIOSystem::DeleteFile( const char* file ) {
+    if (!file || file[0] == '\0') {
         return false;
     }
-    const int retCode( ::remove( file.c_str() ) );
+    const int retCode( ::remove( file ) );
     return ( 0 == retCode );
 }
 } //!ns Assimp

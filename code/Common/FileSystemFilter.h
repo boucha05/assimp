@@ -60,7 +60,7 @@ inline bool IsHex(char s) {
 // ---------------------------------------------------------------------------
 /** File system filter
  */
-class FileSystemFilter : public IOSystem
+class FileSystemFilter : public BaseIOSystem
 {
 public:
     /** Constructor. */
@@ -177,7 +177,7 @@ public:
 
     // -------------------------------------------------------------------
     /** Returns the top directory from the stack. */
-    const std::string &CurrentDirectory() const {
+    const char* CurrentDirectory() const {
         ai_assert( nullptr != mWrapped );
         return mWrapped->CurrentDirectory();
     }
@@ -198,21 +198,21 @@ public:
 
     // -------------------------------------------------------------------
     /** Creates an new directory at the given path. */
-    bool CreateDirectory(const std::string &path) {
+    bool CreateDirectory(const char* path) {
         ai_assert( nullptr != mWrapped );
         return mWrapped->CreateDirectory(path);
     }
 
     // -------------------------------------------------------------------
     /** Will change the current directory to the given path. */
-    bool ChangeDirectory(const std::string &path) {
+    bool ChangeDirectory(const char *path) {
         ai_assert( nullptr != mWrapped );
         return mWrapped->ChangeDirectory(path);
     }
 
     // -------------------------------------------------------------------
     /** Delete file. */
-    bool DeleteFile(const std::string &file) {
+    bool DeleteFile(const char *file) {
         ai_assert( nullptr != mWrapped );
         return mWrapped->DeleteFile(file);
     }

@@ -209,13 +209,12 @@ public:
         return existing_io ? existing_io->ComparePaths(one, second) : false;
     }
 
-    bool PushDirectory( const std::string &path ) override { 
+    bool PushDirectory( const char* path ) override { 
         return existing_io ? existing_io->PushDirectory(path) : false;
     }
 
-    const std::string &CurrentDirectory() const override {
-        static std::string empty;
-        return existing_io ? existing_io->CurrentDirectory() : empty;
+    const char* CurrentDirectory() const override {
+        return existing_io ? existing_io->CurrentDirectory() : nullptr;
     }
 
     size_t StackSize() const override {
@@ -226,15 +225,15 @@ public:
         return existing_io ? existing_io->PopDirectory() : false;
     }
 
-    bool CreateDirectory( const std::string &path ) override {
+    bool CreateDirectory( const char* path ) override {
         return existing_io ? existing_io->CreateDirectory(path) : false;
     }
 
-    bool ChangeDirectory( const std::string &path ) override {
+    bool ChangeDirectory( const char* path ) override {
         return existing_io ? existing_io->ChangeDirectory(path) : false;
     }
 
-    bool DeleteFile( const std::string &file ) override {
+    bool DeleteFile( const char* file ) override {
         return existing_io ? existing_io->DeleteFile(file) : false;
     }
 

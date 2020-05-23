@@ -51,10 +51,10 @@ namespace Assimp {
 
 static const string Sep = "/";
 
-class TestIOSystem : public IOSystem {
+class TestIOSystem : public BaseIOSystem {
 public:
     TestIOSystem()
-    : IOSystem() {
+    : BaseIOSystem() {
         // empty
     }
 

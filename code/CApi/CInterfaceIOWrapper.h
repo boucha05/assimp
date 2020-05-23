@@ -73,7 +73,7 @@ private:
     CIOSystemWrapper *mIO;
 };
 
-class CIOSystemWrapper : public IOSystem {
+class CIOSystemWrapper : public BaseIOSystem {
     friend class CIOStreamWrapper;
 
 public:

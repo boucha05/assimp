@@ -58,7 +58,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Assimp {
 
-class ZipArchiveIOSystem : public IOSystem {
+class ZipArchiveIOSystem : public BaseIOSystem {
 public:
     //! Open a Zip using the proffered IOSystem
     ZipArchiveIOSystem(IOSystem* pIOHandler, const char *pFilename, const char* pMode = "r");

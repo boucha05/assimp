@@ -135,7 +135,7 @@ char DefaultIOSystem::getOsSeparator() const {
 
 // ------------------------------------------------------------------------------------------------
 // IOSystem default implementation (ComparePaths isn't a pure virtual function)
-bool IOSystem::ComparePaths(const char *one, const char *second) const {
+bool BaseIOSystem::ComparePaths(const char *one, const char *second) const {
     return !ASSIMP_stricmp(one, second);
 }
 

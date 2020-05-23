@@ -211,7 +211,7 @@ private:
 // --------------------------------------------------------------------------------------------
 /** Redirect IOSystem to a blob */
 // --------------------------------------------------------------------------------------------
-class BlobIOSystem : public IOSystem
+class BlobIOSystem : public BaseIOSystem
 {
 
     friend class BlobIOStream;
